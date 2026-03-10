@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Backend.Infrastructure.Data
 {
-    public class ApplicationDbContext
+    public class ApplicationDbContext : DbContext
     {
     }
 }
