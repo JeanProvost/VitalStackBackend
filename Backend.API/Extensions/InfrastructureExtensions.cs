@@ -1,6 +1,6 @@
 ﻿namespace Backend.API.Extensions
 {
-    public static class InfrastructureExtension
+    public static class InfrastructureExtensions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config, bool IsDevelopment)
         {
