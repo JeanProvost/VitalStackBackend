@@ -2,6 +2,7 @@
 using Backend.Core.Configuration;
 using Amazon.Runtime;
 using Amazon.Extensions.NETCore.Setup;
+using Amazon.Extensions.Configuration.SystemsManager;
 
 namespace Backend.API.Extensions
 {
@@ -31,11 +32,25 @@ namespace Backend.API.Extensions
             {
                 var env = builder.Environment.EnvironmentName;
 
-                /* builder.Configuration.AddSystemsManager(config =>
+                builder.Configuration.AddSystemsManager(config =>
                 {
-                    config.Path
-                }) */
+                    config.Path = $"/vital-stack-backend/{env}";
+                    config.ReloadAfter = TimeSpan.FromMinutes(15);
+                    config.Optional = true;
+                    config.AwsOptions = awsOptions;
+                });
             }
+
+            builder.Services.AddOptions<DataBaseSettings>()
+                .BindConfiguration(DataBaseSettings.SectionName)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            builder.Services.AddOptions<AwsCognitoSettings>()
+                .BindConfiguration(AwsCognitoSettings.SectionName)
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
             return builder;
         }
     }
