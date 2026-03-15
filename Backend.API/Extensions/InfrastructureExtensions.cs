@@ -8,6 +8,7 @@
                 ?? config["Database:ConnectionString"];
 
             //services.AddDbContextPool
+            return services;
         }
     }
 }
