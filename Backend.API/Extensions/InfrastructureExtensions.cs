@@ -1,6 +1,9 @@
 ﻿using Backend.Core.Configuration;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Backend.API.Extensions
 {
@@ -14,7 +17,14 @@ namespace Backend.API.Extensions
             services.AddDbContextPool<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(connectionString, npgsqlOptions =>
-                    npgsqlOptions.SetPostgresVersion(17, 0));
+                {
+                    npgsqlOptions.SetPostgresVersion(17, 0);
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorCodesToAdd: null);
+                    npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                });
 
                 if (isDevelopment)
                 {
