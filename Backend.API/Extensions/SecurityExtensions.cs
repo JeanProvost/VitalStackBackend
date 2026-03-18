@@ -48,6 +48,10 @@ namespace Backend.API.Extensions
                             .AllowAnyMethod()
                             .AllowCredentials();
                     }
+                    else
+                    {
+                        policy.DisallowCredentials();
+                    }
                 });
             });
             return services;
