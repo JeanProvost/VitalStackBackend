@@ -1,4 +1,6 @@
 ﻿using Backend.Core.Configuration;
+using Backend.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 namespace Backend.API.Extensions
@@ -43,10 +45,17 @@ namespace Backend.API.Extensions
 
         public static void Run(this WebApplication app, string[] args)
         {
-            //ApplyMigrations(app.Services);
+            ApplyMigrations(app.Services);
         } 
 
+        private static void ApplyMigrations(IServiceProvider services)
+        {
+            Console.WriteLine("Applying migrations...");
+            using var scope = services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.Migrate();
+            Console.WriteLine("Migrations complete");
+        }
 
-        //TODO: Autorun migrations
     }
 }
