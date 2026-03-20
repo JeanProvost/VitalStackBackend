@@ -3,7 +3,6 @@ using Backend.Infrastructure.Data;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.NETCore.Setup;
 using Microsoft.EntityFrameworkCore;
-using Amazon.SimpleEmail;
 
 namespace Backend.API.Extensions
 {
@@ -39,6 +38,7 @@ namespace Backend.API.Extensions
                 }
             });
 
+            services.AddHealthChecks();
             ////services.AddHealthChecks()
             //    .AddPostgres(connectionString, name: "PostgreSQL", tags: new[] { "db", "sql", "postgres" });
             //services.AddHybridCache();
