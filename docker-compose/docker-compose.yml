@@ -16,5 +16,27 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: vitalstack-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DataBase__ConnectionString: "Host=postgres;Port=5432;Database=vitalstack_dev;Username=postgres;Password=postgres"
+      # Placeholder values for local development only.
+      # Replace with real AWS Cognito credentials before deploying to any shared environment.
+      # Never commit real credentials here — use a .env file or AWS Systems Manager instead.
+      AwsCognito__UserPoolId: "local_placeholder"
+      AwsCognito__ClientId: "local_placeholder"
+      AwsCognito__CognitoRegion: "ca-central-1"
+      AwsCognito__ClientSecret: "local_placeholder"
+      Cors__AllowOrigins__0: "http://localhost:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
