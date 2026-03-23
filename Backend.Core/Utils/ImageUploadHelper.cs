@@ -1,9 +1,6 @@
-using Amazon.S3;
-using Amazon.S3.Model;
-
 namespace Backend.Core.Utils;
 
-public static class S3ImageUploadHelper
+public static class ImageUploadHelper
 {
     private static readonly Dictionary<string, string> AllowedImageContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -15,13 +12,13 @@ public static class S3ImageUploadHelper
     };
 
     public static async Task<string> UploadImageAsync(
-        IAmazonS3 s3Client,
+        IImageStorageClient storageClient,
         Stream imageStream,
         string fileName,
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(s3Client);
+        ArgumentNullException.ThrowIfNull(storageClient);
         ArgumentNullException.ThrowIfNull(imageStream);
 
         if (!imageStream.CanRead)
@@ -50,39 +47,25 @@ public static class S3ImageUploadHelper
             throw new ArgumentException("The provided content type does not match the image file extension.", nameof(contentType));
         }
 
-        const string bucketName = "YOUR_S3_BUCKET_NAME";
-        // TODO: Replace the bucket name above with your image bucket configuration value.
+        var objectKey = $"images/{SanitizeFileName(fileName)}-{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
 
-        if (string.Equals(bucketName, "YOUR_S3_BUCKET_NAME", StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("Configure the S3 image bucket name before using this helper.");
-        }
-
-        var safeFileName = Path.GetFileNameWithoutExtension(fileName);
-        var normalizedFileName = string.Join(
-            "-",
-            safeFileName
-                .Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            .ToLowerInvariant();
-
-        if (string.IsNullOrWhiteSpace(normalizedFileName))
-        {
-            normalizedFileName = "image";
-        }
-
-        var objectKey = $"images/{normalizedFileName}-{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
-
-        var request = new PutObjectRequest
-        {
-            BucketName = bucketName,
-            Key = objectKey,
-            InputStream = imageStream,
-            ContentType = expectedContentType,
-            AutoCloseStream = false
-        };
-
-        await s3Client.PutObjectAsync(request, cancellationToken);
+        await storageClient.UploadAsync(imageStream, objectKey, expectedContentType, cancellationToken);
 
         return objectKey;
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        var rawFileName = Path.GetFileNameWithoutExtension(fileName);
+        var normalizedCharacters = rawFileName
+            .Select(character => char.IsLetterOrDigit(character) ? char.ToLowerInvariant(character) : '-')
+            .ToArray();
+
+        var sanitizedFileName = string.Join(
+            "-",
+            new string(normalizedCharacters)
+                .Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        return string.IsNullOrWhiteSpace(sanitizedFileName) ? "image" : sanitizedFileName;
     }
 }
