@@ -5,8 +5,20 @@ using Backend.Core.Utils;
 namespace Backend.Infrastructure.Utils;
 
 // TODO: Supply the configured image bucket name when constructing/registering this service.
-public sealed class S3ImageStorageClient(IAmazonS3 s3Client, string bucketName) : IImageStorageClient
+public sealed class S3ImageStorageClient : IImageStorageClient
 {
+    private readonly IAmazonS3 _s3Client;
+    private readonly string _bucketName;
+
+    public S3ImageStorageClient(IAmazonS3 s3Client, string bucketName)
+    {
+        ArgumentNullException.ThrowIfNull(s3Client);
+        ArgumentException.ThrowIfNullOrWhiteSpace(bucketName, nameof(bucketName));
+
+        _s3Client = s3Client;
+        _bucketName = bucketName;
+    }
+
     public async Task UploadAsync(
         Stream imageStream,
         string objectKey,
@@ -25,20 +37,15 @@ public sealed class S3ImageStorageClient(IAmazonS3 s3Client, string bucketName) 
             throw new ArgumentException("A content type is required for image uploads.", nameof(contentType));
         }
 
-        if (string.IsNullOrWhiteSpace(bucketName))
-        {
-            throw new InvalidOperationException("Configure the S3 image bucket name before using this helper.");
-        }
-
         var request = new PutObjectRequest
         {
-            BucketName = bucketName,
+            BucketName = _bucketName,
             Key = objectKey,
             InputStream = imageStream,
             ContentType = contentType,
             AutoCloseStream = false
         };
 
-        await s3Client.PutObjectAsync(request, cancellationToken);
+        await _s3Client.PutObjectAsync(request, cancellationToken);
     }
 }
