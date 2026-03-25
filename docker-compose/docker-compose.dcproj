@@ -3,8 +3,10 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>postgres</DockerServiceName>
+    <DockerServiceUrl>http://localhost:44467</DockerServiceUrl>
+    <DockerServiceName>api</DockerServiceName>
+    <DockerComposeProjectName>vitalstack</DockerComposeProjectName>
+    <DockerComposeDownArguments>--remove-orphans</DockerComposeDownArguments>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".dockerignore" />
