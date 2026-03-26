@@ -1,7 +1,8 @@
+name: vitalstack
+
 services:
   postgres:
     image: postgres:17
-    container_name: vitalstack-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -20,9 +21,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: vitalstack-api
     ports:
-      - "8080:8080"
+      - "44467:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       DataBase__ConnectionString: "Host=postgres;Port=5432;Database=vitalstack_dev;Username=postgres;Password=postgres"

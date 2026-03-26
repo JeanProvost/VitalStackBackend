@@ -3,7 +3,10 @@
     "docker-compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
-      "serviceActions": {}
+      "serviceActions": {
+        "api": "StartDebugging",
+        "postgres": "StartWithoutDebugging"
+      }
     }
   }
 }
