@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Scalar.AspNetCore;
 
 namespace Backend.API.Extensions
 {
@@ -17,13 +17,26 @@ namespace Backend.API.Extensions
                     {
                         Title = "VitalStackBackend",
                         Version = "v1",
-                        Description = "Backend service for VS"
+                        Description = "Back-end service for VS"
                     };
                     return Task.CompletedTask;
                 });
             });
             services.AddEndpointsApiExplorer();
             return services;
+        }
+
+        public static WebApplication UsePresentation(this WebApplication app)
+        {
+            app.MapOpenApi();
+            app.MapScalarApiReference("/scalar", options =>
+            {
+                options.WithTitle("VitalStack-Backend")
+                    .WithClassicLayout()
+                    .WithOpenApiRoutePattern("/openapi/v1.json");
+            });
+
+            return app;
         }
     }
 }
