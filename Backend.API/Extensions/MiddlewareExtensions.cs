@@ -1,7 +1,6 @@
 ﻿using Backend.Core.Configuration;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
 
 namespace Backend.API.Extensions
 {
@@ -12,14 +11,7 @@ namespace Backend.API.Extensions
             if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                app.MapOpenApi();
-
-                app.MapScalarApiReference("/scalar", options =>
-                {
-                    options.WithTitle("VitalStack-Backend")
-                        .WithClassicLayout()
-                        .WithOpenApiRoutePattern("/openapi/v1.json");
-                });
+                app.UsePresentation();
             }
             else
             {
