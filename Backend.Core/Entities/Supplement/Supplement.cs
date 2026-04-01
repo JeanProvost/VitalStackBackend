@@ -15,6 +15,11 @@ public class Supplement : BaseEntity<Guid>
     public required Guid SupplementStackId { get; set; }
 
     /// <summary>
+    /// Gets or sets the parent supplement stack container for this supplement entry.
+    /// </summary>
+    public global::Backend.Core.Entities.SupplementStack.SupplementStack? SupplementStack { get; set; }
+
+    /// <summary>
     /// Gets or sets the identifier of the supplement from the master supplement catalog.
     /// </summary>
     public required Guid SupplementId { get; set; }

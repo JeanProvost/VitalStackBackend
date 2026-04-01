@@ -1,5 +1,4 @@
 using Backend.Core.Entities.Base;
-using SupplementEntity = Backend.Core.Entities.Supplement.Supplement;
 
 namespace Backend.Core.Entities.SupplementStack;
 
@@ -23,5 +22,5 @@ public class SupplementStack : BaseEntity<Guid>
     /// <summary>
     /// Gets or sets supplement entries that belong to this stack.
     /// </summary>
-    public List<SupplementEntity> Supplements { get; set; } = [];
+    public ICollection<global::Backend.Core.Entities.Supplement.Supplement> Supplements { get; set; } = [];
 }
