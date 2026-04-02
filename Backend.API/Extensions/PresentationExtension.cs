@@ -31,7 +31,7 @@ namespace Backend.API.Extensions
             app.MapOpenApi();
             app.MapScalarApiReference("/scalar", options =>
             {
-                options.WithTitle("VitalStack-Backend")
+                options.WithTitle("vitalstack-backend")
                     .WithClassicLayout()
                     .WithOpenApiRoutePattern("/openapi/v1.json");
             });
