@@ -17,17 +17,25 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
+  backend.api:
+    container_name: "vs-api"
     build:
       context: ..
-      dockerfile: Dockerfile
-    ports:
-      - "44467:8080"
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      dockerfile: Backend.API/Dockerfile
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      - SECRETS_PATH=/app/secrets
+    volumes:
+      - ./secrets:/secrets:ro
+    networks:
+      - vs_network
 
 volumes:
   postgres_data:
+
+networks:
+  vs_network:
+    driver: bridge

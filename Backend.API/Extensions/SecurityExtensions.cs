@@ -10,8 +10,8 @@ namespace Backend.API.Extensions
     {
         public static IServiceCollection AddSecurity(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<AwsCognitoSettings>(configuration.GetSection("AwsCognitoSettings"));
-            services.Configure<CorsSettings>(configuration.GetSection("CorsSetting"));
+            services.Configure<AwsCognitoSettings>(configuration.GetSection(AwsCognitoSettings.SectionName));
+            services.Configure<CorsSettings>(configuration.GetSection(CorsSettings.SectionName));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>

@@ -1,0 +1,17 @@
+services:
+  backend.api:
+    build:
+      context: ..
+      dockerfile: Backend.API/Dockerfile
+      target: base
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "55567:8080"
+      - "44468:443"
+    volumes:
+          - ./secrets:/secrets:ro
+          - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+          - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      

@@ -21,7 +21,6 @@ public class AwsCognitoSettings
     [Required] public string UserPoolId { get; set; } = string.Empty;
     [Required] public string ClientId { get; set; } = string.Empty;
     [Required] public string CognitoRegion { get; set; } = string.Empty;
-    [Required] public string ClientSecret { get; set; } = string.Empty;
 }
 
 public class CorsSettings
