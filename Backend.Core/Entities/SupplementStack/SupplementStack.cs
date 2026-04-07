@@ -8,19 +8,17 @@ namespace Backend.Core.Entities.SupplementStack;
 /// </summary>
 public class SupplementStack : BaseEntity<Guid>
 {
-    /// <summary>
-    /// Gets or sets the AWS Cognito subject (sub) identifier for tenant isolation.
-    /// </summary>
     public required string UserId { get; set; }
+    public required Guid SupplementId { get; set; }
+    public string? Brand { get; set; }
 
-    /// <summary>
-    /// Gets or sets whether this stack is active for the user.
-    /// Defaults to true to support soft pause/deactivation behavior.
-    /// </summary>
+    //Chemical Form
+    public required string Form { get; set; }
+    public required decimal DosageAmount { get; set; }
+    public required string DosageUnit { get; set; }
+
+    //TTT
+    public required string TimeToTake { get; set; }
+    public bool? RequiresFood { get; set; }
     public required bool IsActive { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets supplement entries that belong to this stack.
-    /// </summary>
-    public ICollection<global::Backend.Core.Entities.Supplement.Supplement> Supplements { get; set; } = [];
 }
