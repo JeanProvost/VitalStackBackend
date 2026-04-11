@@ -1,4 +1,5 @@
 using Backend.Core.Entities.Base;
+using Backend.Core.Enums;
 
 namespace Backend.Core.Entities.SupplementStack;
 
@@ -19,6 +20,12 @@ public class SupplementStack : BaseEntity<Guid>
 
     //TTT
     public required string TimeToTake { get; set; }
+    public SupplementTimeWindow TimeWindow
+    {
+        get => Enum.Parse<SupplementTimeWindow>(TimeToTake);
+        set => TimeToTake = value.ToString();
+    }
+
     public bool? RequiresFood { get; set; }
     public required bool IsActive { get; set; } = true;
 }
