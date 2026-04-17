@@ -1,13 +1,43 @@
-﻿using Backend.Core.Interfaces.IServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Backend.Core.DTOs;
+using Backend.Core.Entities.Users;
+using Backend.Core.Interfaces.IRepository;
+using Backend.Core.Interfaces.IServices;
+using Microsoft.Extensions.Logging;
 
-namespace Backend.Core.Services
+namespace Backend.Core.Services;
+
+public class UserService(
+    ICognitoAuthService cognitoAuthService,
+    IUserRepository userRepository,
+    ILogger<UserService> logger) : IUserService
 {
-    public class UserService : IUserService
+    public async Task<User> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
+        var cognitoSub = await cognitoAuthService.SignUpAsync(
+            request.Email,
+            request.Password,
+            request.FirstName,
+            request.LastName,
+            cancellationToken);
+
+        logger.LogInformation("Cognito registration successful for {Email}, saving user to database", request.Email);
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            IdentityId = cognitoSub,
+            Email = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            AuthProvider = "cognito",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        var createdUser = await userRepository.Create(user);
+
+        logger.LogInformation("User {Email} saved to database with Id {UserId}", request.Email, createdUser.Id);
+
+        return createdUser;
     }
 }
