@@ -34,11 +34,11 @@ public class CognitoAuthService(
             ]
         };
 
-        logger.LogInformation("Registering user with email {Email} in Cognito", email);
+        logger.LogInformation("Registering user in Cognito");
 
         var response = await cognitoClient.SignUpAsync(signUpRequest, cancellationToken);
 
-        logger.LogInformation("User {Email} registered in Cognito with sub {Sub}", email, response.UserSub);
+        logger.LogInformation("User registered in Cognito successfully");
 
         return response.UserSub;
     }

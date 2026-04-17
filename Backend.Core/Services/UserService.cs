@@ -20,7 +20,7 @@ public class UserService(
             request.LastName,
             cancellationToken);
 
-        logger.LogInformation("Cognito registration successful for {Email}, saving user to database", request.Email);
+        logger.LogInformation("Cognito registration successful, saving user to database");
 
         var user = new User
         {
@@ -36,7 +36,7 @@ public class UserService(
 
         var createdUser = await userRepository.Create(user);
 
-        logger.LogInformation("User {Email} saved to database with Id {UserId}", request.Email, createdUser.Id);
+        logger.LogInformation("User saved to database with Id {UserId}", createdUser.Id);
 
         return createdUser;
     }
