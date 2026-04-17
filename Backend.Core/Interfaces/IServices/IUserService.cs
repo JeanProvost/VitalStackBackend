@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Backend.Core.DTOs;
+using Backend.Core.Entities.Users;
 
-namespace Backend.Core.Interfaces.IServices
+namespace Backend.Core.Interfaces.IServices;
+
+public interface IUserService
 {
-    public interface IUserService
-    {
-    }
+    Task<User> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 }

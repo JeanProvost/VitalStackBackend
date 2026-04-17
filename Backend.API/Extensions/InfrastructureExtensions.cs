@@ -1,5 +1,10 @@
-﻿using Backend.Core.Configuration;
+using Backend.Core.Configuration;
+using Backend.Core.Interfaces.IRepository;
+using Backend.Core.Interfaces.IServices;
+using Backend.Core.Services;
 using Backend.Infrastructure.Data;
+using Backend.Infrastructure.Repository;
+using Backend.Infrastructure.Services;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.NETCore.Setup;
 using Microsoft.EntityFrameworkCore;
@@ -39,13 +44,16 @@ namespace Backend.API.Extensions
             });
 
             services.AddHealthChecks();
-            ////services.AddHealthChecks()
-            //    .AddPostgres(connectionString, name: "PostgreSQL", tags: new[] { "db", "sql", "postgres" });
-            //services.AddHybridCache();
 
             //AWS SDK
             services.AddAWSService<IAmazonCognitoIdentityProvider>();
-            //services.AddAWSService<IAmazonSimpleEmailService>();
+
+            //Repositories
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            //Services
+            services.AddScoped<ICognitoAuthService, CognitoAuthService>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }
