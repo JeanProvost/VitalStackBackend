@@ -1,14 +1,10 @@
-﻿using Backend.Core.Interfaces.IRepository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Backend.Core.Entities.Users;
+using Backend.Core.Interfaces.IRepository;
+using Backend.Infrastructure.Data;
 
-namespace Backend.Infrastructure.Repository
+namespace Backend.Infrastructure.Repository;
+
+public class UserRepository(ApplicationDbContext context)
+    : BaseRepository<User>(context), IUserRepository
 {
-    public class UserRepository : IUserRepository
-    {
-
-    }
 }
