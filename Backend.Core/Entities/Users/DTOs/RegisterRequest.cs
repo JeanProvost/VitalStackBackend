@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Core.DTOs;
+namespace Backend.Core.Entities.Users.DTOs;
 
 public class RegisterRequest
 {

@@ -1,5 +1,5 @@
-using Backend.Core.DTOs;
 using Backend.Core.Entities.Users;
+using Backend.Core.Entities.Users.DTOs;
 using Backend.Core.Interfaces.IRepository;
 using Backend.Core.Interfaces.IServices;
 using Microsoft.Extensions.Logging;
@@ -24,14 +24,11 @@ public class UserService(
 
         var user = new User
         {
-            Id = Guid.NewGuid(),
             IdentityId = cognitoSub,
             Email = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
             AuthProvider = "cognito",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
         };
 
         var createdUser = await userRepository.Create(user);
