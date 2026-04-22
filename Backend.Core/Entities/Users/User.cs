@@ -10,7 +10,5 @@ namespace Backend.Core.Entities.Users
         public string LastName { get; set; } = string.Empty;
         public long? PhoneNumber { get; set; }
         public required string AuthProvider { get; set; }
-        public string? PasswordHash { get; set; }
-        public string? PasswordSalt { get; set; }
     }
 }

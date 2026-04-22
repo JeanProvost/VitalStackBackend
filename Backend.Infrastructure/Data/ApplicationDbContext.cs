@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Backend.Core.Entities.Supplement;
 using Backend.Core.Entities.Users;
+using Backend.Core.Entities.Users.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Data
@@ -19,16 +20,7 @@ namespace Backend.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.ToTable("User");
-
-                entity.HasIndex(x => x.Email).IsUnique();
-                entity.HasIndex(x => x.IdentityId).IsUnique();
-
-                entity.Property(x => x.Email).HasMaxLength(320).IsRequired();
-                entity.Property(x => x.IdentityId).HasMaxLength(128).IsRequired();
-            });
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
         }
 
         public DbSet<User> Users { get; set; }
