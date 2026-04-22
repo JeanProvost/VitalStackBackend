@@ -1,17 +1,17 @@
 services:
-  backend.api:
+  api:
     build:
       context: ..
       dockerfile: Backend.API/Dockerfile
-      target: base
     environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-        - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-vitalstack_dev};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-devdbpassword}
     ports:
       - "55567:8080"
       - "44468:443"
     volumes:
-          - ./secrets:/secrets:ro
-          - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
-          - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ./secrets:/secrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       
