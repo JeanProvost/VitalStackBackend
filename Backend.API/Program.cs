@@ -1,3 +1,4 @@
+using Amazon.CognitoIdentityProvider;
 using Backend.API.Extensions;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

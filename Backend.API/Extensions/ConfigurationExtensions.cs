@@ -10,13 +10,12 @@ namespace Backend.API.Extensions
     {
         public static WebApplicationBuilder AddConfiguration(this WebApplicationBuilder builder)
         {
-            //AWS Credentials
+            // Load additional config sources FIRST so values are available below
             var awsOptions = builder.Configuration.GetAWSOptions();
             var accessKey = builder.Configuration["AWS:AccessKeyId"];
             var secretAccessKey = builder.Configuration["AWS:SecretAccessKey"];
-            var connectionString = builder.Configuration["Database:ConnectionString"];
-            
-            if (!string.IsNullOrEmpty(accessKey) &&  !string.IsNullOrEmpty(secretAccessKey))
+
+            if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretAccessKey))
             {
                 awsOptions.Credentials = new BasicAWSCredentials(accessKey, secretAccessKey);
                 awsOptions.Region = RegionEndpoint.CACentral1;
@@ -34,7 +33,7 @@ namespace Backend.API.Extensions
 
                 builder.Configuration.AddSystemsManager(config =>
                 {
-                    config.Path = $"/vital-stack-backend/{env}";
+                    config.Path = $"/vitalstack-backend/{env}";
                     config.ReloadAfter = TimeSpan.FromMinutes(15);
                     config.Optional = true;
                     config.AwsOptions = awsOptions;
@@ -42,7 +41,13 @@ namespace Backend.API.Extensions
             }
 
             builder.Services.AddOptions<DataBaseSettings>()
-                .BindConfiguration(DataBaseSettings.SectionName)
+                .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    settings.ConnectionString =
+                        configuration.GetConnectionString("DefaultConnection")
+                        ?? configuration[$"{DataBaseSettings.SectionName}:ConnectionString"]
+                        ?? string.Empty;
+                })
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 

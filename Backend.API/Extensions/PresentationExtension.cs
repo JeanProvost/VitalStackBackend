@@ -28,7 +28,7 @@ namespace Backend.API.Extensions
 
         public static WebApplication UsePresentation(this WebApplication app)
         {
-            app.MapOpenApi();
+            app.MapOpenApi("/openapi/{documentName}.json");
             app.MapScalarApiReference("/scalar", options =>
             {
                 options.WithTitle("vitalstack-backend")
