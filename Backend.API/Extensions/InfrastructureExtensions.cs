@@ -4,7 +4,6 @@ using Backend.Core.Interfaces.IServices;
 using Backend.Core.Services;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repository;
-using Backend.Infrastructure.Services;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.NETCore.Setup;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +51,6 @@ namespace Backend.API.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
 
             //Services
-            services.AddScoped<ICognitoAuthService, CognitoAuthService>();
             services.AddScoped<IUserService, UserService>();
 
             return services;
