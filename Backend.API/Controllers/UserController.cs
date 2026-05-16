@@ -26,7 +26,7 @@ public class UserController(IUserService userService) : Controller
 
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromBody] LoginDto request)
+    public async Task<IActionResult> Login([FromBody] LoginDto request, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -35,7 +35,9 @@ public class UserController(IUserService userService) : Controller
 
         try
         {
-            return Ok();
+            var loginResponse = await userService.LoginAsync(request, cancellationToken);
+
+            return Ok(loginResponse);
         }
         catch (Exception ex)
         {
