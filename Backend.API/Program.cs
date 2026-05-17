@@ -1,4 +1,5 @@
 using Amazon.CognitoIdentityProvider;
+using Backend.API.Endpoints;
 using Backend.API.Extensions;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
+
+//Map minimal API endpoints
+app.MapGroup("/api/supplements")
+    .MapSupplementEndpoints()
+    .RequireAuthorization();
+
 app.UseMiddleware();
 await app.RunAsync();
 
