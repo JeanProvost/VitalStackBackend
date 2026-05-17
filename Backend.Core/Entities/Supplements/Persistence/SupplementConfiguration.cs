@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Backend.Core.Entities.Supplements;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-namespace Backend.Core.Entities.Supplement.Persistence
+namespace Backend.Core.Entities.Supplements.Persistence
 
 {
     public class SupplementConfiguration : IEntityTypeConfiguration<Supplement>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Backend.Core.Entities.Supplement;
+using Backend.Core.Entities.Supplements;
 using Backend.Core.Entities.Users;
 using Backend.Core.Entities.Users.Persistence;
 using Microsoft.EntityFrameworkCore;
