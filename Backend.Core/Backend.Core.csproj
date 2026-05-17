@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\SupplementStack\" />
     <Folder Include="Entities\Users\ViewModels\" />
   </ItemGroup>
 

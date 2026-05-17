@@ -2,7 +2,7 @@ using Backend.Core.Entities.Base;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
-namespace Backend.Core.Entities.Supplement;
+namespace Backend.Core.Entities.Supplements;
 
 public class Supplement : BaseEntity<Guid>
 {

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Backend.Core.Entities.Supplement;
+using Backend.Core.Entities.Supplements;
 using Backend.Core.Entities.Users;
 using Backend.Core.Entities.Users.Persistence;
+using Backend.Core.Entities.UserStackEntries;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Infrastructure.Data
@@ -25,5 +26,6 @@ namespace Backend.Infrastructure.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Supplement> Supplements { get; set; }
+        public DbSet<UserStackEntry> UserStackEntries { get; set; }
     }
 }
