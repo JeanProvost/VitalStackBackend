@@ -51,6 +51,7 @@ namespace Backend.API.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
 
             //Services
+            services.AddSingleton<HttpClient>();
             services.AddScoped<IUserService, UserService>();
 
             return services;
