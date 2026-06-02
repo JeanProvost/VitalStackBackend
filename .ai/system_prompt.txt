@@ -1,3 +1,4 @@
+
 GitHub Copilot Instructions: VitalStack (.NET Backend)
 
 1. Role and Context
