@@ -52,6 +52,9 @@ using (var scope = app.Services.CreateScope())
 
 app.MapControllers();
 
+app.MapGroup("/api/user")
+    .MapUserEndpoints();
+
 //Map minimal API endpoints
 app.MapGroup("/api/supplements")
     .MapSupplementEndpoints()
