@@ -1,11 +1,7 @@
-﻿using Backend.Core.Entities.Base;
+using Backend.Core.Entities.Base;
 using Backend.Core.Entities.Supplements;
-using System;
-using System.Collections.Generic;
+using Backend.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Backend.Core.Entities.UserStackEntries
 {
@@ -18,6 +14,8 @@ namespace Backend.Core.Entities.UserStackEntries
 
         [Column(TypeName = "jsonb")]
         public StackCustomization Cusomization { get; set; } = new();
+        public ScheduleTimeBlock IntendedTime { get; set; } = ScheduleTimeBlock.Morning;
+        public string? ContextualInstruction { get; set; }
         public bool IsActive { get; set; } = true;
     }
 

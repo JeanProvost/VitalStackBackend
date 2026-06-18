@@ -44,4 +44,59 @@ public class UserController(IUserService userService) : Controller
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpGet("third-party/{provider}/authorize-url")]
+    [AllowAnonymous]
+    public IActionResult GetThirdPartyAuthorizationUrl(
+        ThirdPartyAuthProvider provider,
+        [FromQuery] string? redirectUri,
+        [FromQuery] string? state,
+        [FromQuery] string? codeChallenge)
+    {
+        try
+        {
+            var response = userService.GetThirdPartyAuthorizationUrl(
+                provider,
+                redirectUri,
+                state,
+                codeChallenge);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("third-party/{provider}/login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ThirdPartyLogin(
+        ThirdPartyAuthProvider provider,
+        [FromBody] ThirdPartyLoginDto request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var loginResponse = await userService.ThirdPartyLoginAsync(
+                provider,
+                request,
+                cancellationToken);
+
+            return Ok(loginResponse);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
