@@ -1,4 +1,5 @@
-﻿using Scalar.AspNetCore;
+using Scalar.AspNetCore;
+using System.Text.Json.Serialization;
 
 namespace Backend.API.Extensions
 {
@@ -6,7 +7,17 @@ namespace Backend.API.Extensions
     {
         public static IServiceCollection AddPresentation(this IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
+
+            services.ConfigureHttpJsonOptions(options =>
+            {
+                options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+
             services.AddProblemDetails();
 
             services.AddOpenApi("v1", options =>
