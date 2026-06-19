@@ -1,3 +1,4 @@
+using Backend.Core.Entities.Supplements.DTOs;
 using Backend.Core.Entities.UserStackEntries;
 using Backend.Core.Enums;
 using Backend.Infrastructure.Data;
@@ -195,31 +196,5 @@ namespace Backend.API.Endpoints
                 ? null
                 : ResolveLegacyTimeTarget(timeOfDay);
         }
-
-        public record AddToStackRequest(
-            Guid? MasterSupplementId,
-            string? CustomName,
-            string? Form,
-            string? Dosage,
-            string? Brand,
-            string? TimeOfDayTarget,
-            ScheduleTimeBlock? IntendedTime,
-            string? ContextualInstruction
-        );
-
-        private record ScheduleOptimization(
-            ScheduleTimeBlock? IntendedTime,
-            string? ContextualInstruction);
-
-        private record OptimizeScheduleRequest(
-            string SupplementName,
-            string? Form,
-            string? Dosage,
-            string? Brand,
-            bool? RequiresFood);
-
-        private record OptimizeScheduleResponse(
-            string? TimeOfDay,
-            string? ContextualInstruction);
     }
 }
