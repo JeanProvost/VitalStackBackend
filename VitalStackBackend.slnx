@@ -3,6 +3,7 @@
     <File Path=".gitignore" />
   </Folder>`r`n  
   <Project Path="Backend.API/Backend.API.csproj" />
+  <Project Path="Backend.Core.Tests/Backend.Core.Tests.csproj" />
   <Project Path="Backend.Core/Backend.Core.csproj" />
   <Project Path="Backend.Infrastructure/Backend.Infrastructure.csproj" />
   <Project Path="docker-compose/docker-compose.dcproj">
