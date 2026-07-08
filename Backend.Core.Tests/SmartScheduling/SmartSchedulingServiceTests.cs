@@ -10,13 +10,24 @@ public sealed class SmartSchedulingServiceTests
 
     // ── helpers ───────────────────────────────────────────────────────────────
 
-    private static Supplement MakeSupplement(string name) => new()
+    private static SupplementProduct MakeSupplement(string name) => new()
     {
-        Name = name,
+        DsldId = $"TEST-{name}",
+        ProductName = name,
         Form = "Capsule",
-        DosageAmount = 1,
-        DosageUnit = "capsule",
-        TimeOfDay = "any"
+        ActiveIngredients =
+        [
+            new ProductIngredient
+            {
+                Ingredient = new SupplementIngredient
+                {
+                    CanonicalName = name,
+                    Category = "Test"
+                },
+                DosageAmount = 1,
+                DosageUnit = "capsule"
+            }
+        ]
     };
 
     // ── B-vitamin → AM ────────────────────────────────────────────────────────
@@ -90,10 +101,10 @@ public sealed class SmartSchedulingServiceTests
 
         Assert.Equal(4, schedule.Count);
         Assert.All(
-            schedule.Where(s => s.Supplement.Name.Contains("Vitamin B", StringComparison.OrdinalIgnoreCase)),
+            schedule.Where(s => s.SupplementProduct.ProductName.Contains("Vitamin B", StringComparison.OrdinalIgnoreCase)),
             entry => Assert.Equal(IntakeSlot.AM, entry.Slot));
         Assert.All(
-            schedule.Where(s => s.Supplement.Name.Contains("Magnesium", StringComparison.OrdinalIgnoreCase)),
+            schedule.Where(s => s.SupplementProduct.ProductName.Contains("Magnesium", StringComparison.OrdinalIgnoreCase)),
             entry => Assert.Equal(IntakeSlot.PM, entry.Slot));
     }
 

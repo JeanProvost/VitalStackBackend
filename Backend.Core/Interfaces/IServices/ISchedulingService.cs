@@ -5,5 +5,5 @@ namespace Backend.Core.Interfaces.IServices;
 
 public interface ISchedulingService
 {
-    ScheduleTimeBlock RecommendTimeBlock(Supplement supplement);
+    ScheduleTimeBlock RecommendTimeBlock(SupplementProduct supplementProduct);
 }

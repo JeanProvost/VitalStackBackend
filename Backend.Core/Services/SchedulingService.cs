@@ -37,19 +37,38 @@ public class SchedulingService : ISchedulingService
         "zinc"
     ];
 
-    public ScheduleTimeBlock RecommendTimeBlock(Supplement supplement)
+    public ScheduleTimeBlock RecommendTimeBlock(SupplementProduct supplementProduct)
     {
-        ArgumentNullException.ThrowIfNull(supplement);
+        ArgumentNullException.ThrowIfNull(supplementProduct);
 
-        var name = supplement.Name.ToLowerInvariant();
-
-        if (PmKeywords.Any(name.Contains))
+        if (ContainsAnySearchTerm(supplementProduct, PmKeywords))
             return ScheduleTimeBlock.Evening;
 
-        if (AmKeywords.Any(name.Contains))
+        if (ContainsAnySearchTerm(supplementProduct, AmKeywords))
             return ScheduleTimeBlock.Morning;
 
         // Default: morning with food is the safest universal fallback.
         return ScheduleTimeBlock.Morning;
+    }
+
+    private static bool ContainsAnySearchTerm(SupplementProduct supplementProduct, IReadOnlyCollection<string> keywords)
+    {
+        return GetSearchTerms(supplementProduct)
+            .Any(term => keywords.Any(keyword => term.Contains(keyword, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static IEnumerable<string> GetSearchTerms(SupplementProduct supplementProduct)
+    {
+        yield return supplementProduct.ProductName;
+
+        foreach (var productIngredient in supplementProduct.ActiveIngredients)
+        {
+            yield return productIngredient.Ingredient.CanonicalName;
+
+            foreach (var alias in productIngredient.Ingredient.Aliases)
+            {
+                yield return alias;
+            }
+        }
     }
 }
