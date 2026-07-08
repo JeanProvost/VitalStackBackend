@@ -13,7 +13,7 @@ public record ScheduleBlockResponse(
 
 public record ScheduleItemResponse(
     Guid UserStackEntryId,
-    Guid? MasterSupplementId,
+    int? SupplementProductId,
     string Name,
     string? Form,
     string? Dosage,

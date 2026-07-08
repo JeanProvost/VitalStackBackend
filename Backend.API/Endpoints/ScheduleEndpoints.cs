@@ -37,7 +37,9 @@ namespace Backend.API.Endpoints
             var dateWindow = GetUtcDateWindow(timeZone);
 
             var stackEntries = await db.UserStackEntries
-                .Include(x => x.MasterSupplement)
+                .Include(x => x.SupplementProduct)
+                    .ThenInclude(p => p!.ActiveIngredients)
+                        .ThenInclude(pi => pi.Ingredient)
                 .Where(x => x.UserId == userId && x.IsActive)
                 .AsNoTracking()
                 .ToListAsync();
@@ -85,7 +87,9 @@ namespace Backend.API.Endpoints
 
             var requestedIds = request.UserStackEntryIds.Distinct().ToList();
             var stackEntries = await db.UserStackEntries
-                .Include(x => x.MasterSupplement)
+                .Include(x => x.SupplementProduct)
+                    .ThenInclude(p => p!.ActiveIngredients)
+                        .ThenInclude(pi => pi.Ingredient)
                 .Where(x => requestedIds.Contains(x.Id) && x.UserId == userId && x.IsActive)
                 .ToListAsync();
 
@@ -123,11 +127,11 @@ namespace Backend.API.Endpoints
         {
             return new ScheduleItemResponse(
                 entry.Id,
-                entry.MasterSupplementId,
+                entry.SupplementProductId,
                 ResolveSupplementName(entry),
-                entry.Cusomization.Form ?? entry.MasterSupplement?.Form,
+                entry.Cusomization.Form ?? entry.SupplementProduct?.Form,
                 ResolveDosage(entry),
-                entry.Cusomization.Brand ?? entry.MasterSupplement?.Brand,
+                entry.Cusomization.Brand ?? entry.SupplementProduct?.BrandName,
                 entry.IntendedTime,
                 entry.ContextualInstruction,
                 isLoggedToday);
@@ -140,14 +144,14 @@ namespace Backend.API.Endpoints
                 return entry.Cusomization.Dosage;
             }
 
-            return entry.MasterSupplement is null
-                ? null
-                : $"{entry.MasterSupplement.DosageAmount} {entry.MasterSupplement.DosageUnit}";
+            var primary = entry.SupplementProduct?.ActiveIngredients.FirstOrDefault();
+            return primary is null ? null : $"{primary.DosageAmount} {primary.DosageUnit}";
         }
 
         private static string ResolveSupplementName(UserStackEntry entry)
         {
-            return entry.MasterSupplement?.Name
+            return entry.SupplementProduct?.ActiveIngredients.FirstOrDefault()?.Ingredient.CanonicalName
+                ?? entry.SupplementProduct?.ProductName
                 ?? entry.CustomName
                 ?? "Supplement";
         }
