@@ -40,42 +40,51 @@ public sealed class SmartSchedulingService : ISmartSchedulingService
     ];
 
     /// <inheritdoc />
-    public IReadOnlyList<ScheduledIntake> BuildSchedule(IEnumerable<Supplement> supplements)
+    public IReadOnlyList<ScheduledIntake> BuildSchedule(IEnumerable<SupplementProduct> supplementProducts)
     {
-        ArgumentNullException.ThrowIfNull(supplements);
+        ArgumentNullException.ThrowIfNull(supplementProducts);
 
         var schedule = new List<ScheduledIntake>();
 
-        foreach (var supplement in supplements)
+        foreach (var supplementProduct in supplementProducts)
         {
-            var slot = DetermineSlot(supplement);
-            schedule.Add(new ScheduledIntake(supplement, slot));
+            var slot = DetermineSlot(supplementProduct);
+            schedule.Add(new ScheduledIntake(supplementProduct, slot));
         }
 
         return schedule.AsReadOnly();
     }
 
-    private static IntakeSlot DetermineSlot(Supplement supplement)
+    private static IntakeSlot DetermineSlot(SupplementProduct supplementProduct)
     {
-        var name = supplement.Name.ToLowerInvariant();
+        if (ContainsAnySearchTerm(supplementProduct, PmKeywords))
+            return IntakeSlot.PM;
 
-        foreach (var keyword in PmKeywords)
-        {
-            if (name.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            {
-                return IntakeSlot.PM;
-            }
-        }
-
-        foreach (var keyword in AmKeywords)
-        {
-            if (name.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            {
-                return IntakeSlot.AM;
-            }
-        }
+        if (ContainsAnySearchTerm(supplementProduct, AmKeywords))
+            return IntakeSlot.AM;
 
         // Default to AM for unknown supplements (take with breakfast).
         return IntakeSlot.AM;
+    }
+
+    private static bool ContainsAnySearchTerm(SupplementProduct supplementProduct, IReadOnlyCollection<string> keywords)
+    {
+        return GetSearchTerms(supplementProduct)
+            .Any(term => keywords.Any(keyword => term.Contains(keyword, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static IEnumerable<string> GetSearchTerms(SupplementProduct supplementProduct)
+    {
+        yield return supplementProduct.ProductName;
+
+        foreach (var productIngredient in supplementProduct.ActiveIngredients)
+        {
+            yield return productIngredient.Ingredient.CanonicalName;
+
+            foreach (var alias in productIngredient.Ingredient.Aliases)
+            {
+                yield return alias;
+            }
+        }
     }
 }

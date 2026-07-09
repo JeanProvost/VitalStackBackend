@@ -18,14 +18,55 @@ namespace Backend.Infrastructure.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfiguration(new UserConfiguration());
+            ConfigureSupplementCatalog(modelBuilder);
             ConfigureUserStackEntries(modelBuilder);
             ConfigureIntakeLogs(modelBuilder);
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<Supplement> Supplements { get; set; }
+        public DbSet<SupplementIngredient> SupplementIngredients { get; set; }
+        public DbSet<SupplementProduct> SupplementProducts { get; set; }
+        public DbSet<ProductIngredient> ProductIngredients { get; set; }
         public DbSet<UserStackEntry> UserStackEntries { get; set; }
         public DbSet<IntakeLog> IntakeLogs { get; set; }
+
+        private static void ConfigureSupplementCatalog(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SupplementIngredient>(b =>
+            {
+                b.HasKey(x => x.Id);
+                b.Property(x => x.CanonicalName).HasMaxLength(200).IsRequired();
+                b.Property(x => x.Category).HasMaxLength(100).IsRequired();
+                b.Property(x => x.Aliases).HasColumnType("jsonb");
+                b.HasIndex(x => x.CanonicalName).IsUnique();
+            });
+
+            modelBuilder.Entity<SupplementProduct>(b =>
+            {
+                b.HasKey(x => x.Id);
+                b.Property(x => x.DsldId).HasMaxLength(50).IsRequired();
+                b.Property(x => x.ProductName).HasMaxLength(300).IsRequired();
+                b.Property(x => x.BrandName).HasMaxLength(200);
+                b.Property(x => x.Form).HasMaxLength(100).IsRequired();
+                b.Property(x => x.Metadata).HasColumnType("jsonb");
+                b.HasIndex(x => x.DsldId).IsUnique();
+            });
+
+            modelBuilder.Entity<ProductIngredient>(b =>
+            {
+                b.HasKey(x => new { x.ProductId, x.IngredientId });
+                b.Property(x => x.DosageAmount).IsRequired();
+                b.Property(x => x.DosageUnit).HasMaxLength(50).IsRequired();
+                b.HasOne(x => x.Product)
+                    .WithMany(p => p.ActiveIngredients)
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                b.HasOne(x => x.Ingredient)
+                    .WithMany(i => i.ProductLinks)
+                    .HasForeignKey(x => x.IngredientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
 
         private static void ConfigureUserStackEntries(ModelBuilder modelBuilder)
         {
@@ -47,11 +88,14 @@ namespace Backend.Infrastructure.Data
                 builder.Property(x => x.ContextualInstruction)
                     .HasMaxLength(500);
 
+                builder.Property(x => x.ServingMultiplier)
+                    .HasPrecision(5, 2);
+
                 builder.HasIndex(x => new { x.UserId, x.IsActive, x.IntendedTime });
 
-                builder.HasOne(x => x.MasterSupplement)
+                builder.HasOne(x => x.SupplementProduct)
                     .WithMany()
-                    .HasForeignKey(x => x.MasterSupplementId)
+                    .HasForeignKey(x => x.SupplementProductId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

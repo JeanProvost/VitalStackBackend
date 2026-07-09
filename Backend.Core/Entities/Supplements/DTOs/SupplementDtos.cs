@@ -3,7 +3,7 @@ using Backend.Core.Enums;
 namespace Backend.Core.Entities.Supplements.DTOs;
 
 public record AddToStackRequest(
-    Guid? MasterSupplementId,
+    int? SupplementProductId,
     string? CustomName,
     string? Form,
     string? Dosage,

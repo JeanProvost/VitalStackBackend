@@ -1,3 +1,4 @@
+using Backend.Core.Entities.Supplements;
 using Backend.Core.Entities.Supplements.DTOs;
 using Backend.Core.Entities.UserStackEntries;
 using Backend.Core.Enums;
@@ -13,7 +14,6 @@ namespace Backend.API.Endpoints
     {
         public static RouteGroupBuilder MapSupplementEndpoints(this RouteGroupBuilder group)
         {
-            //Search Supplement catalog
             group.MapGet("/search", async (
                 [FromQuery] string query,
                 ApplicationDbContext _db) =>
@@ -23,9 +23,9 @@ namespace Backend.API.Endpoints
                     return Results.BadRequest("Query is empty");
                 }
 
-                var results = await _db.Supplements
-                    .Where(s => EF.Functions.ILike(s.Name, $"%{query}%") ||
-                        s.Aliases.Any(a => EF.Functions.ILike(a, $"%{query}%")))
+                var results = await _db.SupplementProducts
+                    .Where(p => EF.Functions.ILike(p.ProductName, $"%{query}%") ||
+                        EF.Functions.ILike(p.BrandName ?? "", $"%{query}%"))
                     .Take(25)
                     .AsNoTracking()
                     .ToListAsync();
@@ -33,7 +33,6 @@ namespace Backend.API.Endpoints
                 return Results.Ok(results);
             });
 
-            //Add Supplement to User Stack
             group.MapPost("/stack", async (
                 [FromBody] AddToStackRequest request,
                 ApplicationDbContext _db,
@@ -50,9 +49,9 @@ namespace Backend.API.Endpoints
                     return Results.Unauthorized();
                 }
 
-                if (request.MasterSupplementId == null && string.IsNullOrWhiteSpace(request.CustomName))
+                if (request.SupplementProductId == null && string.IsNullOrWhiteSpace(request.CustomName))
                 {
-                    return Results.BadRequest("CustomerName and MasterSupplementId required");
+                    return Results.BadRequest("CustomName or SupplementProductId required");
                 }
 
                 var nowUtc = DateTime.UtcNow;
@@ -72,7 +71,7 @@ namespace Backend.API.Endpoints
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    MasterSupplementId = request.MasterSupplementId,
+                    SupplementProductId = request.SupplementProductId,
                     CustomName = request.CustomName,
                     IntendedTime = intendedTime,
                     ContextualInstruction = request.ContextualInstruction ?? optimization.ContextualInstruction,
@@ -115,21 +114,29 @@ namespace Backend.API.Endpoints
                 return new ScheduleOptimization(null, null);
             }
 
-            var supplement = request.MasterSupplementId is null
-                ? null
-                : await db.Supplements
+            SupplementProduct? product = null;
+            if (request.SupplementProductId is not null)
+            {
+                product = await db.SupplementProducts
+                    .Include(p => p.ActiveIngredients)
+                        .ThenInclude(pi => pi.Ingredient)
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == request.MasterSupplementId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == request.SupplementProductId, cancellationToken);
+            }
 
-            var supplementName = supplement?.Name ?? request.CustomName;
+            var primaryIngredient = product?.ActiveIngredients.FirstOrDefault();
+            var supplementName = primaryIngredient?.Ingredient.CanonicalName
+                ?? product?.ProductName
+                ?? request.CustomName;
+
             if (string.IsNullOrWhiteSpace(supplementName))
             {
                 return new ScheduleOptimization(null, null);
             }
 
-            var dosage = request.Dosage ?? (supplement is null
+            var dosage = request.Dosage ?? (primaryIngredient is null
                 ? null
-                : $"{supplement.DosageAmount} {supplement.DosageUnit}");
+                : $"{primaryIngredient.DosageAmount} {primaryIngredient.DosageUnit}");
 
             try
             {
@@ -140,10 +147,10 @@ namespace Backend.API.Endpoints
                     endpoint,
                     new OptimizeScheduleRequest(
                         supplementName,
-                        request.Form ?? supplement?.Form,
+                        request.Form ?? product?.Form,
                         dosage,
-                        request.Brand ?? supplement?.Brand,
-                        supplement?.RequiresFood),
+                        request.Brand ?? product?.BrandName,
+                        null),
                     linkedToken.Token);
 
                 if (!response.IsSuccessStatusCode)
@@ -196,5 +203,6 @@ namespace Backend.API.Endpoints
                 ? null
                 : ResolveLegacyTimeTarget(timeOfDay);
         }
+
     }
 }

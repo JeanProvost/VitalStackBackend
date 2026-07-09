@@ -98,12 +98,23 @@ public class SchedulingServiceTests
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-    private static Supplement BuildSupplement(string name) => new()
+    private static SupplementProduct BuildSupplement(string name) => new()
     {
-        Name = name,
+        DsldId = $"TEST-{name}",
+        ProductName = name,
         Form = "Capsule",
-        DosageAmount = 1,
-        DosageUnit = "capsule",
-        TimeOfDay = "AM"
+        ActiveIngredients =
+        [
+            new ProductIngredient
+            {
+                Ingredient = new SupplementIngredient
+                {
+                    CanonicalName = name,
+                    Category = "Test"
+                },
+                DosageAmount = 1,
+                DosageUnit = "capsule"
+            }
+        ]
     };
 }
