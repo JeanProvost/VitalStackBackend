@@ -3,7 +3,7 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>http://localhost:44467</DockerServiceUrl>
+    <DockerServiceUrl>http://localhost:55567/scalar</DockerServiceUrl>
     <DockerServiceName>api</DockerServiceName>
     <DockerComposeProjectName>vitalstack</DockerComposeProjectName>
     <DockerComposeDownArguments>--remove-orphans</DockerComposeDownArguments>
