@@ -25,7 +25,11 @@ namespace Backend.API.Endpoints
 
                 var results = await _db.SupplementProducts
                     .Where(p => EF.Functions.ILike(p.ProductName, $"%{query}%") ||
-                        EF.Functions.ILike(p.BrandName ?? "", $"%{query}%"))
+                        EF.Functions.ILike(p.BrandName ?? "", $"%{query}%") ||
+                        p.ActiveIngredients.Any(pi =>
+                            EF.Functions.ILike(pi.Ingredient.CanonicalName, $"%{query}%")))
+                    .Include(p => p.ActiveIngredients)
+                        .ThenInclude(pi => pi.Ingredient)
                     .Take(25)
                     .AsNoTracking()
                     .ToListAsync();
