@@ -14,6 +14,8 @@ namespace Backend.API.Endpoints
     {
         public static RouteGroupBuilder MapSupplementEndpoints(this RouteGroupBuilder group)
         {
+            group.MapGet("/autocomplete", AutocompleteAsync);
+
             group.MapGet("/search", async (
                 [FromQuery] string query,
                 ApplicationDbContext _db) =>
@@ -23,16 +25,91 @@ namespace Backend.API.Endpoints
                     return Results.BadRequest("Query is empty");
                 }
 
-                var results = await _db.SupplementProducts
-                    .Where(p => EF.Functions.ILike(p.ProductName, $"%{query}%") ||
-                        EF.Functions.ILike(p.BrandName ?? "", $"%{query}%") ||
-                        p.ActiveIngredients.Any(pi =>
-                            EF.Functions.ILike(pi.Ingredient.CanonicalName, $"%{query}%")))
-                    .Include(p => p.ActiveIngredients)
-                        .ThenInclude(pi => pi.Ingredient)
-                    .Take(25)
+                var searchPattern = $"%{query.Trim()}%";
+
+                const int resultLimit = 25;
+
+                // Product-name matches have absolute priority. Fetching these first avoids calculating
+                // ingredient percentages for thousands of products that cannot reach the response.
+                var rankedProductIds = await _db.SupplementProducts
                     .AsNoTracking()
+                    .Where(p => EF.Functions.ILike(p.ProductName, searchPattern))
+                    .OrderBy(p => p.ProductName)
+                    .ThenBy(p => p.Id)
+                    .Select(p => p.Id)
+                    .Take(resultLimit)
                     .ToListAsync();
+
+                var remaining = resultLimit - rankedProductIds.Count;
+                if (remaining > 0)
+                {
+                    var ingredientProductIds = await _db.SupplementProducts
+                        .AsNoTracking()
+                        .Where(p => !rankedProductIds.Contains(p.Id) &&
+                            p.ActiveIngredients.Any(pi =>
+                                EF.Functions.ILike(pi.Ingredient.CanonicalName, searchPattern)))
+                        .Select(p => new
+                        {
+                            p.Id,
+                            p.ProductName,
+                            // Convert mass units to mg so a 1 g ingredient is not ranked below 500 mg.
+                            MatchingIngredientMass = p.ActiveIngredients
+                                .Where(pi => EF.Functions.ILike(pi.Ingredient.CanonicalName, searchPattern))
+                                .Sum(pi => pi.DosageUnit.ToLower() == "g" ? pi.DosageAmount * 1000m :
+                                    pi.DosageUnit.ToLower() == "mg" ? pi.DosageAmount :
+                                    pi.DosageUnit.ToLower() == "mcg" ? pi.DosageAmount / 1000m : 0m),
+                            TotalIngredientMass = p.ActiveIngredients
+                                .Sum(pi => pi.DosageUnit.ToLower() == "g" ? pi.DosageAmount * 1000m :
+                                    pi.DosageUnit.ToLower() == "mg" ? pi.DosageAmount :
+                                    pi.DosageUnit.ToLower() == "mcg" ? pi.DosageAmount / 1000m : 0m)
+                        })
+                        .OrderByDescending(x => x.TotalIngredientMass == 0m
+                            ? 0m
+                            : x.MatchingIngredientMass / x.TotalIngredientMass)
+                        .ThenBy(x => x.ProductName)
+                        .ThenBy(x => x.Id)
+                        .Select(x => x.Id)
+                        .Take(remaining)
+                        .ToListAsync();
+
+                    rankedProductIds.AddRange(ingredientProductIds);
+                    remaining -= ingredientProductIds.Count;
+                }
+
+                if (remaining > 0)
+                {
+                    var brandProductIds = await _db.SupplementProducts
+                        .AsNoTracking()
+                        .Where(p => !rankedProductIds.Contains(p.Id) &&
+                            p.BrandName != null &&
+                            EF.Functions.ILike(p.BrandName, searchPattern))
+                        .OrderBy(p => p.ProductName)
+                        .ThenBy(p => p.Id)
+                        .Select(p => p.Id)
+                        .Take(remaining)
+                        .ToListAsync();
+
+                    rankedProductIds.AddRange(brandProductIds);
+                }
+
+                var productResults = await _db.SupplementProducts
+                    .AsNoTracking()
+                    .Where(p => rankedProductIds.Contains(p.Id))
+                    .Select(p => new SupplementSearchResultDto(
+                        p.Id,
+                        p.ProductName,
+                        p.BrandName,
+                        p.Form,
+                        p.ActiveIngredients.Select(pi => new IngredientSummaryDto(
+                            pi.Ingredient.CanonicalName,
+                            pi.DosageAmount,
+                            pi.DosageUnit
+                        )).ToList()
+                    ))
+                    .ToListAsync();
+
+                var resultsByProductId = productResults.ToDictionary(result => result.Id);
+                var results = rankedProductIds.Select(id => resultsByProductId[id]).ToList();
 
                 return Results.Ok(results);
             });
@@ -97,6 +174,29 @@ namespace Backend.API.Endpoints
             });
 
             return group;
+        }
+
+        public static async Task<IResult> AutocompleteAsync(
+            [FromQuery] string? query,
+            ApplicationDbContext db,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Results.BadRequest("Query is empty");
+            }
+
+            var trimmedQuery = query.Trim();
+            if (trimmedQuery.Length < SupplementAutocompleteQuery.MinimumQueryLength)
+            {
+                return Results.Ok(Array.Empty<SupplementAutocompleteSuggestionDto>());
+            }
+
+            var suggestions = await SupplementAutocompleteQuery
+                .Create(db.SupplementProducts, trimmedQuery)
+                .ToListAsync(cancellationToken);
+
+            return Results.Ok(suggestions);
         }
 
         private static async Task<ScheduleOptimization> OptimizeScheduleAsync(
