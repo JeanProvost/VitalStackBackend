@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: vitalstack_dev
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: vitalstack
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api-dotnet:
+    build:
+      context: .
+      dockerfile: jeanprovost/vitalstackbackend/VitalStackBackend-736d0eeda6cc66d18b0b5c7370638198144addf7/Backend.API/Dockerfile
+    ports:
+      - "5029:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=vitalstack;Username=vitalstack_dev;Password=devpassword
+    depends_on:
+      - db
+
+  ai-python:
+    build:
+      context: ./jeanprovost/vitalstackassist/VitalStackAssist-86d4133c652215acc22e8f111bfd6290f272f1c2
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4
+      - OPENAI_TIMEOUT=15.0
+
+volumes:
+  pgdata:

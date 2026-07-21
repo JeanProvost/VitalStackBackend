@@ -1,4 +1,4 @@
-﻿using Backend.Core.Configuration;
+using Backend.Core.Configuration;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +25,7 @@ namespace Backend.API.Extensions
             app.UseRouting();
             app.UseCors(CorsSettings.PolicyName);
 
-            app.UseAuthorization();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
@@ -38,7 +38,7 @@ namespace Backend.API.Extensions
         public static void Run(this WebApplication app, string[] args)
         {
             ApplyMigrations(app.Services);
-        } 
+        }
 
         private static void ApplyMigrations(IServiceProvider services)
         {
@@ -48,6 +48,5 @@ namespace Backend.API.Extensions
             dbContext.Database.Migrate();
             Console.WriteLine("Migrations complete");
         }
-
     }
 }

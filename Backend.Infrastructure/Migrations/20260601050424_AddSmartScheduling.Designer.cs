@@ -6,6 +6,7 @@ using Backend.Core.Entities.UserStackEntries;
 using Backend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601050424_AddSmartScheduling")]
+    partial class AddSmartScheduling
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,95 +79,53 @@ namespace Backend.Infrastructure.Migrations
                     b.ToTable("IntakeLogs");
                 });
 
-            modelBuilder.Entity("Backend.Core.Entities.Supplements.ProductIngredient", b =>
+            modelBuilder.Entity("Backend.Core.Entities.Supplements.Supplement", b =>
                 {
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("IngredientId")
-                        .HasColumnType("integer");
+                    b.PrimitiveCollection<List<string>>("Aliases")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<string>("Brand")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("DosageAmount")
                         .HasColumnType("numeric");
 
                     b.Property<string>("DosageUnit")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("ProductId", "IngredientId");
-
-                    b.HasIndex("IngredientId");
-
-                    b.ToTable("ProductIngredients");
-                });
-
-            modelBuilder.Entity("Backend.Core.Entities.Supplements.SupplementIngredient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<List<string>>("Aliases")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("CanonicalName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CanonicalName")
-                        .IsUnique();
-
-                    b.ToTable("SupplementIngredients");
-                });
-
-            modelBuilder.Entity("Backend.Core.Entities.Supplements.SupplementProduct", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BrandName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("DsldId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Form")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
-                    b.Property<JsonDocument>("Metadata")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("RequiresFood")
+                        .HasColumnType("boolean");
+
+                    b.Property<JsonDocument>("ScientificContext")
                         .HasColumnType("jsonb");
 
-                    b.Property<string>("ProductName")
+                    b.Property<string>("TimeOfDay")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DsldId")
-                        .IsUnique();
-
-                    b.ToTable("SupplementProducts");
+                    b.ToTable("Supplements");
                 });
 
             modelBuilder.Entity("Backend.Core.Entities.UserStackEntries.UserStackEntry", b =>
@@ -195,12 +156,8 @@ namespace Backend.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal>("ServingMultiplier")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)");
-
-                    b.Property<int?>("SupplementProductId")
-                        .HasColumnType("integer");
+                    b.Property<Guid?>("MasterSupplementId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -211,7 +168,7 @@ namespace Backend.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SupplementProductId");
+                    b.HasIndex("MasterSupplementId");
 
                     b.HasIndex("UserId", "IsActive", "IntendedTime");
 
@@ -272,43 +229,14 @@ namespace Backend.Infrastructure.Migrations
                     b.Navigation("UserStackEntry");
                 });
 
-            modelBuilder.Entity("Backend.Core.Entities.Supplements.ProductIngredient", b =>
-                {
-                    b.HasOne("Backend.Core.Entities.Supplements.SupplementIngredient", "Ingredient")
-                        .WithMany("ProductLinks")
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Backend.Core.Entities.Supplements.SupplementProduct", "Product")
-                        .WithMany("ActiveIngredients")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("Backend.Core.Entities.UserStackEntries.UserStackEntry", b =>
                 {
-                    b.HasOne("Backend.Core.Entities.Supplements.SupplementProduct", "SupplementProduct")
+                    b.HasOne("Backend.Core.Entities.Supplements.Supplement", "MasterSupplement")
                         .WithMany()
-                        .HasForeignKey("SupplementProductId")
+                        .HasForeignKey("MasterSupplementId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("SupplementProduct");
-                });
-
-            modelBuilder.Entity("Backend.Core.Entities.Supplements.SupplementIngredient", b =>
-                {
-                    b.Navigation("ProductLinks");
-                });
-
-            modelBuilder.Entity("Backend.Core.Entities.Supplements.SupplementProduct", b =>
-                {
-                    b.Navigation("ActiveIngredients");
+                    b.Navigation("MasterSupplement");
                 });
 #pragma warning restore 612, 618
         }

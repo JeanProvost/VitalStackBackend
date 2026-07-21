@@ -16,4 +16,12 @@ public class UserRepository(ApplicationDbContext context)
         return DbSet.AsNoTracking()
             .AnyAsync(u => u.Email == email, cancellationToken);
     }
+
+    public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        return DbSet
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+    }
 }

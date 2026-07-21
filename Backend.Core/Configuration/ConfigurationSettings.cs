@@ -21,6 +21,10 @@ public class AwsCognitoSettings
     [Required] public string UserPoolId { get; set; } = string.Empty;
     [Required] public string ClientId { get; set; } = string.Empty;
     [Required] public string CognitoRegion { get; set; } = string.Empty;
+    public string ClientSecret { get; set; } = string.Empty;
+    public string HostedUiDomain { get; set; } = string.Empty;
+    public string DefaultRedirectUri { get; set; } = string.Empty;
+    public string[] OAuthScopes { get; set; } = ["openid", "email", "profile"];
 }
 
 public class CorsSettings

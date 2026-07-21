@@ -1,23 +1,22 @@
-﻿using Backend.Core.Entities.Base;
+using Backend.Core.Entities.Base;
 using Backend.Core.Entities.Supplements;
-using System;
-using System.Collections.Generic;
+using Backend.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Backend.Core.Entities.UserStackEntries
 {
     public class UserStackEntry : BaseEntity<Guid>
     {
         public required string UserId { get; set; }
-        public Guid? MasterSupplementId { get; set; }
-        public Supplement? MasterSupplement { get; set; }
+        public int? SupplementProductId { get; set; }
+        public SupplementProduct? SupplementProduct { get; set; }
         public string? CustomName { get; set; }
 
         [Column(TypeName = "jsonb")]
         public StackCustomization Cusomization { get; set; } = new();
+        public ScheduleTimeBlock IntendedTime { get; set; } = ScheduleTimeBlock.Morning;
+        public string? ContextualInstruction { get; set; }
+        public decimal ServingMultiplier { get; set; } = 1.0m;
         public bool IsActive { get; set; } = true;
     }
 
