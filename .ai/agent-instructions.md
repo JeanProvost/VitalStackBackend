@@ -20,6 +20,22 @@ You must strictly enforce this architecture. Never deviate unless explicitly ins
 
 ## 3. Mandatory Implementation Patterns
 
+### Endpoint and Service Pairing
+Every ASP.NET Core Minimal API endpoint group except `User` MUST have a corresponding service under `Backend.Core/Services/`.
+
+Examples:
+* `Backend.API/Endpoints/SupplementEndpoints.cs` -> `Backend.Core/Services/SupplementService.cs`
+* `Backend.API/Endpoints/SettingsEndpoints.cs` -> `Backend.Core/Services/SettingsService.cs`
+
+Endpoint files must remain thin transport adapters:
+* Keep route mapping, authentication/authorization checks, HTTP request validation, cancellation-token forwarding, and HTTP response/status creation in the endpoint.
+* Put database queries, filtering, ranking, projections, entity construction, external-service orchestration, and business rules in the corresponding service.
+* Services must use layer-appropriate query sources or repository interfaces; `ApplicationDbContext`, migrations, and repository implementations remain Infrastructure concerns.
+* Register each new service with dependency injection and have the endpoint call that service.
+* Do not create a new non-User endpoint with its database or business logic implemented inline in the endpoint file.
+
+This pairing is mandatory even when the initial endpoint is small. It prevents endpoint bloat and keeps future changes maintainable.
+
 ### The Cache-Aside Flow (Interaction Checking)
 Whenever implementing or modifying the interaction checker, follow this exact sequence:
 1. **Frontend Request:** Receives list of supplements.
