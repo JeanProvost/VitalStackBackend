@@ -53,6 +53,7 @@ namespace Backend.API.Extensions
             //Services
             services.AddSingleton<HttpClient>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<SupplementService>();
 
             return services;
         }
