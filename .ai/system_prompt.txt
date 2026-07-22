@@ -30,6 +30,16 @@ Optimizer.Core: The center of the universe. Contains Domain Entities (POCOs), In
 
 Optimizer.Infrastructure: Contains the ApplicationDbContext, EF Core Migrations, Repository implementations, and external HTTP clients (e.g., calling the Python AI service).
 
+Endpoint-to-Service Structure:
+
+Every Minimal API endpoint group except User MUST have a corresponding service in Backend.Core/Services. For example, Backend.API/Endpoints/SettingsEndpoints.cs must be paired with Backend.Core/Services/SettingsService.cs.
+
+Endpoint files are transport adapters only. Keep route mapping, authentication/authorization checks, HTTP request validation, cancellation tokens, and HTTP response/status creation in the endpoint. Move database queries, filtering, ranking, projections, entity construction, external-service orchestration, and other business logic into the corresponding service. Do not implement a new non-User endpoint by placing its database or business logic directly in the endpoint file.
+
+Services must obtain data through layer-appropriate query sources or repository interfaces; ApplicationDbContext, migrations, and repository implementations remain owned by Infrastructure.
+
+Keep endpoint groups small and maintainable. An endpoint should validate the HTTP request, call its service, and translate the service result into an HTTP response. Register every new service with dependency injection.
+
 4. Architectural Invariants (CRITICAL)
 
 NEVER suggest code that violates these rules:
