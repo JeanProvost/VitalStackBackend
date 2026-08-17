@@ -27,6 +27,8 @@ namespace Backend.API.Extensions
                 options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.SetPostgresVersion(17, 0);
+                    npgsqlOptions.ConfigureDataSource(
+                        dataSourceBuilder => dataSourceBuilder.EnableDynamicJson());
                     npgsqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 3,
                         maxRetryDelay: TimeSpan.FromSeconds(5),
@@ -54,6 +56,7 @@ namespace Backend.API.Extensions
             services.AddSingleton<HttpClient>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<SupplementService>();
+            services.AddScoped<StackService>();
 
             return services;
         }
