@@ -23,14 +23,10 @@ public record IngredientSummaryDto(
 );
 
 public record AddToStackRequest(
-    int? SupplementProductId,
-    string? CustomName,
-    string? Form,
-    string? Dosage,
-    string? Brand,
-    string? TimeOfDayTarget,
-    ScheduleTimeBlock? IntendedTime,
-    string? ContextualInstruction
+    int SupplementProductId,
+    decimal ServingMultiplier = 1.0m,
+    ScheduleTimeBlock? IntendedTime = null,
+    string? ContextualInstruction = null
 );
 
 public record ScheduleOptimization(

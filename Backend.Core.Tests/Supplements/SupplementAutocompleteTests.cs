@@ -4,7 +4,6 @@ using Backend.Core.Services;
 using Backend.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Backend.Core.Tests.Supplements;
 
@@ -17,8 +16,7 @@ public class SupplementAutocompleteTests
     public async Task AutocompleteAsync_BlankQuery_ReturnsBadRequest(string? query)
     {
         await using var db = CreateDbContext();
-        using var httpClient = new HttpClient();
-        var service = CreateService(httpClient);
+        var service = new SupplementService();
 
         var result = await SupplementEndpoints.AutocompleteAsync(query, db, service, CancellationToken.None);
 
@@ -32,8 +30,7 @@ public class SupplementAutocompleteTests
     public async Task AutocompleteAsync_TrimmedQueryShorterThanThreeCharacters_ReturnsEmptyArray(string query)
     {
         await using var db = CreateDbContext();
-        using var httpClient = new HttpClient();
-        var service = CreateService(httpClient);
+        var service = new SupplementService();
 
         var result = await SupplementEndpoints.AutocompleteAsync(query, db, service, CancellationToken.None);
 
@@ -45,8 +42,7 @@ public class SupplementAutocompleteTests
     public void Create_RanksProductMatchesAndLimitsProjectedShape()
     {
         using var db = CreateDbContext();
-        using var httpClient = new HttpClient();
-        var service = CreateService(httpClient);
+        var service = new SupplementService();
 
         var sql = service.CreateAutocompleteQuery(db.SupplementProducts, "mag").ToQueryString();
 
@@ -81,6 +77,4 @@ public class SupplementAutocompleteTests
         return new ApplicationDbContext(options);
     }
 
-    private static SupplementService CreateService(HttpClient httpClient) =>
-        new(httpClient, new ConfigurationBuilder().Build());
 }
