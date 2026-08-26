@@ -57,6 +57,10 @@ app.MapGroup("/api/supplements")
     .MapSupplementEndpoints()
     .RequireAuthorization();
 
+app.MapGroup("/api/stack")
+    .MapStackEndpoint()
+    .RequireAuthorization();
+
 app.MapGroup("/api/schedule")
     .MapScheduleEndpoints()
     .RequireAuthorization();

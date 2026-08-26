@@ -10,6 +10,9 @@ public class SupplementProduct
     public required string ProductName { get; set; }
     public string? BrandName { get; set; }
     public required string Form { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? LabelPdfUrl { get; set; }
+    public DateTime? LabelAssetsFetchedAtUtc { get; set; }
 
     [Column(TypeName = "jsonb")]
     public JsonDocument? Metadata { get; set; }

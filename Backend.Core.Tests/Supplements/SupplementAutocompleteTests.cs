@@ -4,7 +4,6 @@ using Backend.Core.Services;
 using Backend.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Backend.Core.Tests.Supplements;
 
@@ -18,7 +17,7 @@ public class SupplementAutocompleteTests
     {
         await using var db = CreateDbContext();
         using var httpClient = new HttpClient();
-        var service = CreateService(httpClient);
+        var service = new SupplementService(httpClient);
 
         var result = await SupplementEndpoints.AutocompleteAsync(query, db, service, CancellationToken.None);
 
@@ -33,7 +32,7 @@ public class SupplementAutocompleteTests
     {
         await using var db = CreateDbContext();
         using var httpClient = new HttpClient();
-        var service = CreateService(httpClient);
+        var service = new SupplementService(httpClient);
 
         var result = await SupplementEndpoints.AutocompleteAsync(query, db, service, CancellationToken.None);
 
@@ -46,7 +45,7 @@ public class SupplementAutocompleteTests
     {
         using var db = CreateDbContext();
         using var httpClient = new HttpClient();
-        var service = CreateService(httpClient);
+        var service = new SupplementService(httpClient);
 
         var sql = service.CreateAutocompleteQuery(db.SupplementProducts, "mag").ToQueryString();
 
@@ -57,6 +56,8 @@ public class SupplementAutocompleteTests
         Assert.Contains("\"ProductName\", s.\"Id\"", sql, StringComparison.Ordinal);
         Assert.DoesNotContain("ActiveIngredients", sql, StringComparison.Ordinal);
         Assert.DoesNotContain("Metadata", sql, StringComparison.Ordinal);
+        Assert.Contains("ThumbnailUrl", sql, StringComparison.Ordinal);
+        Assert.Contains("LabelPdfUrl", sql, StringComparison.Ordinal);
         Assert.Equal(10, SupplementService.AutocompleteResultLimit);
     }
 
@@ -69,7 +70,9 @@ public class SupplementAutocompleteTests
             .OrderBy(name => name)
             .ToArray();
 
-        Assert.Equal(["BrandName", "Id", "ProductName"], properties);
+        Assert.Equal(
+            ["BrandName", "Id", "LabelPdfUrl", "ProductName", "ThumbnailUrl"],
+            properties);
     }
 
     private static ApplicationDbContext CreateDbContext()
@@ -81,6 +84,4 @@ public class SupplementAutocompleteTests
         return new ApplicationDbContext(options);
     }
 
-    private static SupplementService CreateService(HttpClient httpClient) =>
-        new(httpClient, new ConfigurationBuilder().Build());
 }
