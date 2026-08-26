@@ -16,7 +16,8 @@ public class SupplementAutocompleteTests
     public async Task AutocompleteAsync_BlankQuery_ReturnsBadRequest(string? query)
     {
         await using var db = CreateDbContext();
-        var service = new SupplementService();
+        using var httpClient = new HttpClient();
+        var service = new SupplementService(httpClient);
 
         var result = await SupplementEndpoints.AutocompleteAsync(query, db, service, CancellationToken.None);
 
@@ -30,7 +31,8 @@ public class SupplementAutocompleteTests
     public async Task AutocompleteAsync_TrimmedQueryShorterThanThreeCharacters_ReturnsEmptyArray(string query)
     {
         await using var db = CreateDbContext();
-        var service = new SupplementService();
+        using var httpClient = new HttpClient();
+        var service = new SupplementService(httpClient);
 
         var result = await SupplementEndpoints.AutocompleteAsync(query, db, service, CancellationToken.None);
 
@@ -42,7 +44,8 @@ public class SupplementAutocompleteTests
     public void Create_RanksProductMatchesAndLimitsProjectedShape()
     {
         using var db = CreateDbContext();
-        var service = new SupplementService();
+        using var httpClient = new HttpClient();
+        var service = new SupplementService(httpClient);
 
         var sql = service.CreateAutocompleteQuery(db.SupplementProducts, "mag").ToQueryString();
 
@@ -53,6 +56,8 @@ public class SupplementAutocompleteTests
         Assert.Contains("\"ProductName\", s.\"Id\"", sql, StringComparison.Ordinal);
         Assert.DoesNotContain("ActiveIngredients", sql, StringComparison.Ordinal);
         Assert.DoesNotContain("Metadata", sql, StringComparison.Ordinal);
+        Assert.Contains("ThumbnailUrl", sql, StringComparison.Ordinal);
+        Assert.Contains("LabelPdfUrl", sql, StringComparison.Ordinal);
         Assert.Equal(10, SupplementService.AutocompleteResultLimit);
     }
 
@@ -65,7 +70,9 @@ public class SupplementAutocompleteTests
             .OrderBy(name => name)
             .ToArray();
 
-        Assert.Equal(["BrandName", "Id", "ProductName"], properties);
+        Assert.Equal(
+            ["BrandName", "Id", "LabelPdfUrl", "ProductName", "ThumbnailUrl"],
+            properties);
     }
 
     private static ApplicationDbContext CreateDbContext()

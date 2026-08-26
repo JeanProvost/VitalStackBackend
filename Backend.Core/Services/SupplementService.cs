@@ -1,12 +1,16 @@
 using Backend.Core.Entities.Supplements;
 using Backend.Core.Entities.Supplements.DTOs;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Backend.Core.Services;
 
-public class SupplementService
+public class SupplementService(HttpClient httpClient)
 {
     private const int SearchResultLimit = 25;
+    private const string DsldLabelEndpoint = "https://api.ods.od.nih.gov/dsld/v9/label/";
+    private const string DsldPdfBaseUrl = "https://api.ods.od.nih.gov/dsld/s3/pdf/";
     public const int AutocompleteMinimumQueryLength = 3;
     public const int AutocompleteResultLimit = 10;
 
@@ -91,6 +95,8 @@ public class SupplementService
                 p.ProductName,
                 p.BrandName,
                 p.Form,
+                p.ThumbnailUrl,
+                p.LabelPdfUrl,
                 p.ActiveIngredients.Select(pi => new IngredientSummaryDto(
                     pi.Ingredient.CanonicalName,
                     pi.DosageAmount,
@@ -147,12 +153,85 @@ public class SupplementService
             .Select(product => new SupplementAutocompleteSuggestionDto(
                 product.Id,
                 product.ProductName,
-                product.BrandName))
+                product.BrandName,
+                product.ThumbnailUrl,
+                product.LabelPdfUrl))
             .Take(AutocompleteResultLimit);
+    }
+
+    public IQueryable<SupplementProduct> CreateLabelAssetBackfillQuery(
+        IQueryable<SupplementProduct> supplementProducts,
+        int afterProductId,
+        int batchSize)
+    {
+        ArgumentNullException.ThrowIfNull(supplementProducts);
+        ArgumentOutOfRangeException.ThrowIfNegative(afterProductId);
+        ArgumentOutOfRangeException.ThrowIfLessThan(batchSize, 1);
+
+        return supplementProducts
+            .AsTracking()
+            .Where(product =>
+                product.Id > afterProductId &&
+                product.LabelAssetsFetchedAtUtc == null)
+            .OrderBy(product => product.Id)
+            .Take(batchSize);
+    }
+
+    public async Task PopulateLabelAssetsAsync(
+        IEnumerable<SupplementProduct> products,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(products);
+
+        foreach (var product in products)
+        {
+            try
+            {
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeout.CancelAfter(TimeSpan.FromSeconds(10));
+                using var response = await httpClient.GetAsync(
+                    $"{DsldLabelEndpoint}{Uri.EscapeDataString(product.DsldId)}",
+                    timeout.Token);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    continue;
+                }
+
+                var label = await response.Content.ReadFromJsonAsync<DsldLabel>(timeout.Token);
+                if (label is null)
+                {
+                    continue;
+                }
+
+                var escapedDsldId = Uri.EscapeDataString(product.DsldId);
+                product.ThumbnailUrl = string.IsNullOrWhiteSpace(label.Thumbnail)
+                    ? null
+                    : $"{DsldPdfBaseUrl}thumbnails/{escapedDsldId}.jpg";
+                product.LabelPdfUrl = string.IsNullOrWhiteSpace(label.Pdf)
+                    ? null
+                    : $"{DsldPdfBaseUrl}{escapedDsldId}.pdf";
+                product.LabelAssetsFetchedAtUtc = DateTime.UtcNow;
+            }
+            catch (HttpRequestException)
+            {
+                // Leave the product unchecked so a later backfill run can retry it.
+            }
+            catch (JsonException)
+            {
+                // Leave malformed responses unchecked so a later backfill run can retry them.
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // HttpClient timed out; leave the product unchecked for a later retry.
+            }
+        }
     }
 
     private static string EscapeLikePattern(string value) => value
         .Replace("\\", "\\\\", StringComparison.Ordinal)
         .Replace("%", "\\%", StringComparison.Ordinal)
         .Replace("_", "\\_", StringComparison.Ordinal);
+
+    private sealed record DsldLabel(string? Thumbnail, string? Pdf);
 }

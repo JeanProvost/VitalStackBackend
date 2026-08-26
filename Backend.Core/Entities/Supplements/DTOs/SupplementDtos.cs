@@ -5,7 +5,9 @@ namespace Backend.Core.Entities.Supplements.DTOs;
 public record SupplementAutocompleteSuggestionDto(
     int Id,
     string ProductName,
-    string? BrandName
+    string? BrandName,
+    string? ThumbnailUrl,
+    string? LabelPdfUrl
 );
 
 public record SupplementSearchResultDto(
@@ -13,6 +15,8 @@ public record SupplementSearchResultDto(
     string ProductName,
     string? BrandName,
     string Form,
+    string? ThumbnailUrl,
+    string? LabelPdfUrl,
     List<IngredientSummaryDto> Ingredients
 );
 
