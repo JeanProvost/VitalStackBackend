@@ -48,6 +48,8 @@ namespace Backend.Infrastructure.Data
                 b.Property(x => x.ProductName).HasMaxLength(300).IsRequired();
                 b.Property(x => x.BrandName).HasMaxLength(200);
                 b.Property(x => x.Form).HasMaxLength(100).IsRequired();
+                b.Property(x => x.ThumbnailUrl).HasMaxLength(2048);
+                b.Property(x => x.LabelPdfUrl).HasMaxLength(2048);
                 b.Property(x => x.Metadata).HasColumnType("jsonb");
                 b.HasIndex(x => x.DsldId).IsUnique();
             });
