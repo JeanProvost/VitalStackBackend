@@ -10,6 +10,11 @@
 # dotenv files
 .env
 
+#AGENT 
+LESSONS.md
+AGENTS.md
+agent-instructions.md
+
 # User-specific files
 *.rsuser
 *.suo

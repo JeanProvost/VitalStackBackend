@@ -4,6 +4,7 @@ using Backend.Core.Interfaces.IServices;
 using Backend.Core.Services;
 using Backend.Infrastructure.Data;
 using Backend.Infrastructure.Repository;
+using Backend.API.BackgroundServices;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.NETCore.Setup;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,8 @@ namespace Backend.API.Extensions
                 options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.SetPostgresVersion(17, 0);
+                    npgsqlOptions.ConfigureDataSource(
+                        dataSourceBuilder => dataSourceBuilder.EnableDynamicJson());
                     npgsqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 3,
                         maxRetryDelay: TimeSpan.FromSeconds(5),
@@ -54,6 +57,8 @@ namespace Backend.API.Extensions
             services.AddSingleton<HttpClient>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<SupplementService>();
+            services.AddScoped<StackService>();
+            services.AddHostedService<SupplementLabelBackfillService>();
 
             return services;
         }

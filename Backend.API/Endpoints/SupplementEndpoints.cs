@@ -1,9 +1,7 @@
-using Backend.Core.Entities.Supplements;
 using Backend.Core.Entities.Supplements.DTOs;
 using Backend.Core.Services;
 using Backend.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Backend.API.Endpoints
 {
@@ -30,38 +28,6 @@ namespace Backend.API.Endpoints
                     cancellationToken);
 
                 return Results.Ok(results);
-            });
-
-            group.MapPost("/stack", async (
-                [FromBody] AddToStackRequest request,
-                ApplicationDbContext db,
-                ClaimsPrincipal user,
-                SupplementService supplementService,
-                CancellationToken cancellationToken) =>
-            {
-                var userId = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                    ?? user.FindFirstValue("sub");
-
-                if (string.IsNullOrWhiteSpace(userId))
-                {
-                    return Results.Unauthorized();
-                }
-
-                if (request.SupplementProductId == null && string.IsNullOrWhiteSpace(request.CustomName))
-                {
-                    return Results.BadRequest("CustomName or SupplementProductId required");
-                }
-
-                var newEntry = await supplementService.CreateStackEntryAsync(
-                    request,
-                    userId,
-                    db.SupplementProducts,
-                    cancellationToken);
-
-                db.UserStackEntries.Add(newEntry);
-                await db.SaveChangesAsync(cancellationToken);
-
-                return Results.Created($"/api/supplements/stack/{newEntry.Id}", newEntry);
             });
 
             return group;

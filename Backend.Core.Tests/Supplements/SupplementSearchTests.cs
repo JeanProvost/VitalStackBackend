@@ -23,6 +23,8 @@ public class SupplementSearchTests
             ProductName = "Nature Made Vitamin D3",
             BrandName = "Nature Made",
             Form = "Softgel",
+            ThumbnailUrl = "https://example.test/thumbnail.jpg",
+            LabelPdfUrl = "https://example.test/label.pdf",
             ActiveIngredients =
             [
                 new ProductIngredient
@@ -40,6 +42,8 @@ public class SupplementSearchTests
         Assert.Equal("Nature Made Vitamin D3", dto.ProductName);
         Assert.Equal("Nature Made", dto.BrandName);
         Assert.Equal("Softgel", dto.Form);
+        Assert.Equal("https://example.test/thumbnail.jpg", dto.ThumbnailUrl);
+        Assert.Equal("https://example.test/label.pdf", dto.LabelPdfUrl);
         Assert.Single(dto.Ingredients);
         Assert.Equal("Vitamin D3", dto.Ingredients[0].Name);
         Assert.Equal(2000m, dto.Ingredients[0].DosageAmount);
@@ -71,6 +75,8 @@ public class SupplementSearchTests
         p.ProductName,
         p.BrandName,
         p.Form,
+        p.ThumbnailUrl,
+        p.LabelPdfUrl,
         p.ActiveIngredients.Select(pi => new IngredientSummaryDto(
             pi.Ingredient.CanonicalName,
             pi.DosageAmount,
