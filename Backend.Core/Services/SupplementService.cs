@@ -92,6 +92,7 @@ public class SupplementService(HttpClient httpClient)
             .Where(p => rankedProductIds.Contains(p.Id))
             .Select(p => new SupplementSearchResultDto(
                 p.Id,
+                p.DsldId,
                 p.ProductName,
                 p.BrandName,
                 p.Form,
@@ -152,6 +153,7 @@ public class SupplementService(HttpClient httpClient)
             .ThenBy(product => product.Id)
             .Select(product => new SupplementAutocompleteSuggestionDto(
                 product.Id,
+                product.DsldId,
                 product.ProductName,
                 product.BrandName,
                 product.ThumbnailUrl,
