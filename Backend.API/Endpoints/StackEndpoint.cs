@@ -1,4 +1,5 @@
 using Backend.Core.Entities.Supplements.DTOs;
+using Backend.Core.Entities.UserStackEntries.DTOs;
 using Backend.Core.Services;
 using Backend.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ public static class StackEndpoint
             return Results.Unauthorized();
         }
 
-        if (request.SupplementProductId <= 0)
+        if (request.SupplementProductId == null)
         {
             return Results.BadRequest("SupplementProductId must be greater than zero.");
         }
@@ -41,11 +42,18 @@ public static class StackEndpoint
                 $"ServingMultiplier must be greater than zero and no more than {StackService.MaximumServingMultiplier}.");
         }
 
-        var newEntry = await stackService.CreateEntryAsync(
+        var (newEntry, isDuplicate) = await stackService.CreateEntryAsync(
             request,
             userId,
             db.SupplementProducts,
+            db.UserStackEntries,
             cancellationToken);
+
+        if (isDuplicate)
+        {
+            return Results.Conflict(
+                $"Supplement product {request.SupplementProductId} is already in the user's stack.");
+        }
 
         if (newEntry is null)
         {
@@ -55,6 +63,31 @@ public static class StackEndpoint
         db.UserStackEntries.Add(newEntry);
         await db.SaveChangesAsync(cancellationToken);
 
-        return Results.Created($"/api/stack/{newEntry.Id}", newEntry);
+        var supplementProductId = newEntry.SupplementProductId
+            ?? throw new InvalidOperationException("A catalog stack entry must have a supplement product ID.");
+        var supplementProduct = await stackService.GetProductSummaryAsync(
+            supplementProductId,
+            db.SupplementProducts,
+            cancellationToken);
+
+        var response = new AddToStackResponseDto(
+            newEntry.UserId,
+            supplementProductId,
+            supplementProduct,
+            newEntry.CustomName,
+            new StackCustomizationDto(
+                newEntry.Cusomization.Form,
+                newEntry.Cusomization.Dosage,
+                newEntry.Cusomization.Brand,
+                newEntry.Cusomization.TimeOfDayTarget),
+            newEntry.IntendedTime,
+            newEntry.ContextualInstruction,
+            newEntry.ServingMultiplier,
+            newEntry.IsActive,
+            newEntry.Id,
+            newEntry.CreatedAt,
+            newEntry.UpdatedAt);
+
+        return Results.Created($"/api/stack/{newEntry.Id}", response);
     }
 }

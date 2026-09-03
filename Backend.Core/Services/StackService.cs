@@ -1,6 +1,7 @@
 using Backend.Core.Entities.Supplements;
 using Backend.Core.Entities.Supplements.DTOs;
 using Backend.Core.Entities.UserStackEntries;
+using Backend.Core.Entities.UserStackEntries.DTOs;
 using Backend.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -15,21 +16,23 @@ public class StackService(
 {
     public const decimal MaximumServingMultiplier = 999.99m;
 
-    public async Task<UserStackEntry?> CreateEntryAsync(
+    public async Task<(UserStackEntry? Entry, bool IsDuplicate)> CreateEntryAsync(
         AddToStackRequest request,
         string userId,
         IQueryable<SupplementProduct> supplementProducts,
+        IQueryable<UserStackEntry> userStackEntries,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentNullException.ThrowIfNull(supplementProducts);
+        ArgumentNullException.ThrowIfNull(userStackEntries);
 
         var productQuery = supplementProducts
             .Include(product => product.ActiveIngredients)
                 .ThenInclude(productIngredient => productIngredient.Ingredient)
             .AsNoTracking()
-            .Where(product => product.Id == request.SupplementProductId);
+            .Where(product => product.DsldId == request.SupplementProductId);
 
         var product = productQuery.Provider is IAsyncQueryProvider
             ? await productQuery.FirstOrDefaultAsync(cancellationToken)
@@ -37,7 +40,21 @@ public class StackService(
 
         if (product is null)
         {
-            return null;
+            return (null, false);
+        }
+
+        var duplicateQuery = userStackEntries
+            .AsNoTracking()
+            .Where(entry =>
+                entry.UserId == userId &&
+                entry.SupplementProductId == product.Id);
+        var isDuplicate = duplicateQuery.Provider is IAsyncQueryProvider
+            ? await duplicateQuery.AnyAsync(cancellationToken)
+            : duplicateQuery.Any();
+
+        if (isDuplicate)
+        {
+            return (null, true);
         }
 
         var optimization = await OptimizeScheduleAsync(request, product, cancellationToken);
@@ -46,17 +63,39 @@ public class StackService(
             ?? ScheduleTimeBlock.Morning;
         var nowUtc = DateTime.UtcNow;
 
-        return new UserStackEntry
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            SupplementProductId = product.Id,
-            IntendedTime = intendedTime,
-            ContextualInstruction = request.ContextualInstruction ?? optimization.ContextualInstruction,
-            ServingMultiplier = request.ServingMultiplier,
-            CreatedAt = nowUtc,
-            UpdatedAt = nowUtc
-        };
+        return (
+            new UserStackEntry
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                SupplementProductId = product.Id,
+                IntendedTime = intendedTime,
+                ContextualInstruction = request.ContextualInstruction ?? optimization.ContextualInstruction,
+                ServingMultiplier = request.ServingMultiplier,
+                CreatedAt = nowUtc,
+                UpdatedAt = nowUtc
+            },
+            false);
+    }
+
+    public async Task<StackSupplementProductDto> GetProductSummaryAsync(
+        int supplementProductId,
+        IQueryable<SupplementProduct> supplementProducts,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(supplementProducts);
+
+        var productQuery = supplementProducts
+            .AsNoTracking()
+            .Where(product => product.Id == supplementProductId)
+            .Select(product => new StackSupplementProductDto(
+                product.DsldId,
+                product.ProductName,
+                product.BrandName));
+
+        return productQuery.Provider is IAsyncQueryProvider
+            ? await productQuery.SingleAsync(cancellationToken)
+            : productQuery.Single();
     }
 
     private async Task<ScheduleOptimization> OptimizeScheduleAsync(

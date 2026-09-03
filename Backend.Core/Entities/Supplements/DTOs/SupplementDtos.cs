@@ -4,6 +4,7 @@ namespace Backend.Core.Entities.Supplements.DTOs;
 
 public record SupplementAutocompleteSuggestionDto(
     int Id,
+    string DsldId,
     string ProductName,
     string? BrandName,
     string? ThumbnailUrl,
@@ -12,6 +13,7 @@ public record SupplementAutocompleteSuggestionDto(
 
 public record SupplementSearchResultDto(
     int Id,
+    string DsldId,
     string ProductName,
     string? BrandName,
     string Form,
@@ -27,7 +29,7 @@ public record IngredientSummaryDto(
 );
 
 public record AddToStackRequest(
-    int SupplementProductId,
+    string SupplementProductId,
     decimal ServingMultiplier = 1.0m,
     ScheduleTimeBlock? IntendedTime = null,
     string? ContextualInstruction = null
